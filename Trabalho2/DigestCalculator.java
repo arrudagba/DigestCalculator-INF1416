@@ -1,5 +1,5 @@
 // Gabriel de Barros Arruda - 2311723
-// Érica Oliveira Regnier - 2211893
+// Erica Oliveira Regnier - 2211893
 
 import java.io.*;
 import java.security.*;
@@ -83,7 +83,13 @@ public class DigestCalculator {
         // calcula o digest do conteudo de cada arquivo
         Map<String, String> digestsCalculados = new LinkedHashMap<String, String>();
         for (File arq : arquivos) {
-            byte[] digest = calculaDigest(messageDigest, arq);
+            byte[] digest;
+            try {
+                digest = calculaDigest(messageDigest, arq);
+            } catch (IOException e) {
+                err.println("Erro ao ler o arquivo " + arq.getName() + ": " + e.getMessage());
+                return 1;
+            }
             digestsCalculados.put(arq.getName(), toHex(digest));
         }
 
@@ -131,7 +137,12 @@ public class DigestCalculator {
         return null;
     }
 
-
+    //
+    // calcula o digest do conteudo do arquivo (e nao do seu nome). O arquivo eh
+    // lido em blocos e cada bloco eh processado com update(byte[] input, int offset,
+    // int len), que considera somente os bytes efetivamente lidos: o ultimo bloco
+    // normalmente vem incompleto, e usar update(byte[]) incluiria no digest o lixo
+    // que sobrou no buffer. Assim o arquivo tambem nao precisa caber na memoria.
     static byte[] calculaDigest(MessageDigest messageDigest, File arq) throws IOException {
         messageDigest.reset();
         byte[] buffer = new byte[8192];
